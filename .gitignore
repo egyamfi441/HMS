@@ -1,2 +1,21 @@
-node_modules
-.env
+# Server
+/server/node_modules
+/server/.env
+
+# Client
+/frontend/client/node_modules
+/frontend/client/.pnp
+/frontend/client/.pnp.js
+/frontend/client/coverage
+/frontend/client/build
+/frontend/client/.DS_Store
+/frontend/client/.env.local
+/frontend/client/.env.development.local
+/frontend/client/.env.test.local
+/frontend/client/.env.production.local
+/frontend/client/npm-debug.log*
+/frontend/client/yarn-debug.log*
+/frontend/client/yarn-error.log*
+
+# Database file
+/server/hms.db
