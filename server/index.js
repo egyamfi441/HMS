@@ -1,9 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const jwt =require('jsonwebtoken');
 require('dotenv').config();
 const db = require('./db'); // Import the db connection
+
+const patientRoutes = require('./routes/patients');
+const doctorRoutes = require('./routes/doctors');
+const appointmentRoutes = require('./routes/appointments');
+const billingRoutes = require('./routes/billing');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -11,95 +16,14 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Patient Routes
-app.get('/api/patients', (req, res) => {
-  const sql = "SELECT * FROM patients";
-  db.all(sql, [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: rows
-    });
-  });
-});
+// Use modular routes
+app.use('/api/patients', patientRoutes);
+app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/billing', billingRoutes);
 
-app.get('/api/patients/:id', (req, res) => {
-  const sql = "SELECT * FROM patients WHERE id = ?";
-  db.get(sql, [req.params.id], (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    if (row) {
-      res.json({
-        message: "success",
-        data: row
-      });
-    } else {
-      res.status(404).json({ message: "Patient not found" });
-    }
-  });
-});
-
-app.post('/api/patients', (req, res) => {
-  const { name, date_of_birth, gender, address, phone, email, patient_type } = req.body;
-  if (!name || !date_of_birth || !gender || !patient_type) {
-    res.status(400).json({ error: "Missing required fields" });
-    return;
-  }
-  const sql = 'INSERT INTO patients (name, date_of_birth, gender, address, phone, email, patient_type) VALUES (?,?,?,?,?,?,?)';
-  const params = [name, date_of_birth, gender, address, phone, email, patient_type];
-  db.run(sql, params, function(err, result) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.status(201).json({
-      message: "success",
-      data: { id: this.lastID, ...req.body }
-    });
-  });
-});
-
-app.put('/api/patients/:id', (req, res) => {
-  const { name, date_of_birth, gender, address, phone, email, patient_type } = req.body;
-  const sql = `UPDATE patients set
-               name = COALESCE(?,name),
-               date_of_birth = COALESCE(?,date_of_birth),
-               gender = COALESCE(?,gender),
-               address = COALESCE(?,address),
-               phone = COALESCE(?,phone),
-               email = COALESCE(?,email),
-               patient_type = COALESCE(?,patient_type)
-               WHERE id = ?`;
-  const params = [name, date_of_birth, gender, address, phone, email, patient_type, req.params.id];
-  db.run(sql, params, function(err, result) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({
-      message: "success",
-      data: req.body,
-      changes: this.changes
-    });
-  });
-});
-
-app.delete('/api/patients/:id', (req, res) => {
-  const sql = 'DELETE FROM patients WHERE id = ?';
-  db.run(sql, req.params.id, function(err, result) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json({ message: "deleted", changes: this.changes });
-  });
-});
-
+const paymentRoutes = require('./routes/payments');
+app.use('/api/payments', paymentRoutes);
 
 // Register a new user
 app.post('/api/register', async (req, res) => {
@@ -153,7 +77,7 @@ app.post('/api/login', (req, res) => {
 
     jwt.sign(
       payload,
-      'your-super-secret-key-that-should-be-long-and-random',
+      process.env.JWT_SECRET || 'your-super-secret-key-that-should-be-long-and-random',
       { expiresIn: 3600 },
       (err, token) => {
         if (err) throw err;
