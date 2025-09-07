@@ -1,8 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const PDFDocument = require('pdfkit');
-const db = require('../db');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const PDFDocument = require("pdfkit");
+const db = require("../db");
+
+// Debug log to confirm Stripe is initialized
+console.log("Stripe initialized with key:", process.env.STRIPE_SECRET_KEY ? "✅ Loaded" : "❌ Missing");
 
 router.post('/checkout', async (req, res) => {
   const { amount, currency, source, description } = req.body;
@@ -13,9 +16,9 @@ router.post('/checkout', async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: currency || 'usd',
             product_data: {
-              name: 'Hospital Services',
+              name: description || 'Hospital Services',
             },
             unit_amount: amount * 100, // amount in cents
           },
@@ -36,35 +39,33 @@ router.post('/checkout', async (req, res) => {
 });
 
 router.get('/receipt/:id/pdf', (req, res) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    // In a real app, you'd fetch transaction details from the database
-    // For now, we'll use some mock data
-    const transaction = {
-        id: id,
-        date: new Date().toLocaleDateString(),
-        amount: '150.00',
-        patient: 'Alice Smith',
-        service: 'Annual Checkup'
-    };
+  const transaction = {
+    id: id,
+    date: new Date().toLocaleDateString(),
+    amount: '150.00',
+    patient: 'Alice Smith',
+    service: 'Annual Checkup'
+  };
 
-    const doc = new PDFDocument();
+  const doc = new PDFDocument();
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=receipt-${id}.pdf`);
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename=receipt-${id}.pdf`);
 
-    doc.pipe(res);
+  doc.pipe(res);
 
-    doc.fontSize(25).text('Hospital Receipt', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Transaction ID: ${transaction.id}`);
-    doc.text(`Date: ${transaction.date}`);
-    doc.text(`Patient: ${transaction.patient}`);
-    doc.text(`Service: ${transaction.service}`);
-    doc.moveDown();
-    doc.fontSize(16).text(`Amount Paid: $${transaction.amount}`);
+  doc.fontSize(25).text('Hospital Receipt', { align: 'center' });
+  doc.moveDown();
+  doc.fontSize(12).text(`Transaction ID: ${transaction.id}`);
+  doc.text(`Date: ${transaction.date}`);
+  doc.text(`Patient: ${transaction.patient}`);
+  doc.text(`Service: ${transaction.service}`);
+  doc.moveDown();
+  doc.fontSize(16).text(`Amount Paid: $${transaction.amount}`);
 
-    doc.end();
+  doc.end();
 });
 
 module.exports = router;

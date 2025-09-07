@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { loadStripe } from "@stripe/stripe-js";   // ✅ Import Stripe
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
 import PatientList from './modules/patients/PatientList';
@@ -13,6 +14,9 @@ import ReportsPage from './modules/reports/ReportsPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+
+// ✅ Initialize Stripe with your publishable key from .env
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 // A simple protected route component
 const ProtectedRoute = ({ children }) => {
@@ -41,7 +45,7 @@ function App() {
                   <Route path="billing" element={<BillingList />} />
                   <Route path="billing/new" element={<BillingForm />} />
                   <Route path="reports" element={<ReportsPage />} />
-                  <Route path="payment" element={<PaymentPage />} />
+                  <Route path="payment" element={<PaymentPage stripePromise={stripePromise} />} /> {/* ✅ pass Stripe */}
                   <Route path="payment-success" element={<PaymentSuccess />} />
                   <Route path="payment-cancel" element={<PaymentCancel />} />
                   <Route path="/" element={<h2 className="text-3xl font-bold">Welcome to the Dashboard!</h2>} />
