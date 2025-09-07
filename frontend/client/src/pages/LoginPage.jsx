@@ -17,7 +17,6 @@ const LoginPage = () => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('token', data.token);
-        // Redirect to dashboard
         window.location.href = '/dashboard';
       } else {
         alert(data.msg || 'Login failed');
@@ -29,8 +28,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+    <div
+      className="flex items-center justify-center h-screen bg-cover bg-center"
+      style={{ backgroundImage: `url(/assest/login-bg1.jpg)` }}
+    >
+      <div className="absolute inset-0 bg-black opacity-50"></div>
+      <div className="relative z-10 w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <div className="flex justify-center">
+          <img src="/assest/hms-logo2.jpg" alt="Logo" className="w-24 h-24" />
+        </div>
         <h2 className="text-2xl font-bold text-center">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
